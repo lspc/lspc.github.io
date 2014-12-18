@@ -368,12 +368,12 @@ jQuery.extend( jQuery.easing,
       options = $.extend(defaults, options);
 
       $("#lean-overlay").click(function() {
-        closeModal(modal);
+        $(modal).closeModal(options);
       });
 
       $(modal).find(".modal-close").click(function(e) {
         e.preventDefault();
-        closeModal(modal);
+        $(modal).closeModal(options);
       });
 
       $("#lean-overlay").css({ display : "block", opacity : 0 });
@@ -397,22 +397,30 @@ jQuery.extend( jQuery.easing,
           }
         }
       });
-
-      function closeModal(modal_id) {
-        $("#lean-overlay").velocity( { opacity: 0}, {duration: options.out_duration, queue: false, ease: "easeOutQuart"});
-        $(modal_id).fadeOut(options.out_duration, function() {
-          $(modal_id).css({ top: 0});
-          $("#lean-overlay").css({display:"none"});
-
-          // Call complete callback
-          if (typeof(options.complete) === "function") {
-            options.complete();
-          }
-        });
-      }
     }
   });
-  
+
+  $.fn.extend({
+    closeModal: function(options) {
+      var defaults = {
+        out_duration: 200,
+        complete: undefined
+      }
+      var options = $.extend(defaults, options);
+
+      $("#lean-overlay").velocity( { opacity: 0}, {duration: options.out_duration, queue: false, ease: "easeOutQuart"});
+      $(this).fadeOut(options.out_duration, function() {
+        $(this).css({ top: 0});
+        $("#lean-overlay").css({display:"none"});
+
+        // Call complete callback
+        if (typeof(options.complete) === "function") {
+          options.complete();
+        }
+      });
+    }
+  })
+
   $.fn.extend({
     leanModal: function(options) {
       return this.each(function() {
@@ -617,8 +625,8 @@ jQuery.extend( jQuery.easing,
 
     // For each set of tabs, we want to keep track of
     // which tab is active and its associated content
-    var $this = $(this);
-    var window_width = $(window).width();
+    var $this = $(this),
+        window_width = $(window).width();
 
     $this.width('100%');
     // Set Tab Width for each tab
@@ -626,10 +634,10 @@ jQuery.extend( jQuery.easing,
     $this.children('li').each(function() {
       $(this).width((100/$num_tabs)+'%');
     });
-    var $active, $content, $links = $this.find('li.tab a');
-    var $tabs_width = $this.width();
-    var $tab_width = $this.find('li').first().outerWidth();
-    var $index = 0;
+    var $active, $content, $links = $this.find('li.tab a'),
+        $tabs_width = $this.width(),
+        $tab_width = $this.find('li').first().outerWidth(),
+        $index = 0;
     
     // If the location.hash matches one of the links, use that as the active tab.
     // If no match is found, use the first link as the initial active tab.
@@ -709,21 +717,26 @@ jQuery.extend( jQuery.easing,
   });
 
   };
-}( jQuery ));;(function ($) {
+}( jQuery ));
+;(function ($) {
     
     var newTooltip;
     var timeout;
     var counter;
-  var started;
-  var counterInterval
+    var started;
+    var counterInterval;
     $.fn.tooltip = function (options) {
+      var margin = 5;
+      started = false;
+
+      // Defaults
       var defaults = {
         delay: 350
       }
       options = $.extend(defaults, options);
       
-      var origin = $(this);
-      var margin = 5;
+      return this.each(function(){
+        var origin = $(this);
       
       // Create tooltip
       var newTooltip = $('<div></div');
@@ -732,60 +745,56 @@ jQuery.extend( jQuery.easing,
       
       var backdrop = $('<div></div').addClass('backdrop');
       backdrop.appendTo(newTooltip);
-      backdrop.css({ top: 0,
-                    left:0,
-              marginLeft: (newTooltip.outerWidth()/2) - (backdrop.width()/2) });
+      backdrop.css({ top: 0, left:0, marginLeft: (newTooltip.outerWidth()/2) - (backdrop.width()/2) });
       
-      started = false;
-      this.hover(function() {
+
+      // Mouse In
+      $(this).hover(function(e) {
+        e.stopPropagation();
         counter = 0;
-        
-       
         counterInterval = setInterval(function(){
           counter += 50;
           if (counter >= defaults.delay && started == false) {
             started = true
             newTooltip.css({ display: 'block' });
 
-            //    Bottom Position
+            // Bottom Position
             newTooltip.css({top: origin.offset().top + origin.outerHeight() + margin,
                   left: origin.offset().left + origin.outerWidth()/2 - newTooltip.outerWidth()/2 });
 
+            // Calculate Scale to fill
+            scale_factor = newTooltip.width() / 8;
+            if (scale_factor < 8)
+              scale_factor = 8;
 
-            newTooltip.velocity({ opacity: 1, marginTop: '+10px'}, { duration: 250, queue: false });
+            newTooltip.velocity({ opacity: 1, marginTop: '+10px'}, { duration: 350, queue: false });
             backdrop.css({ display: 'block' })
-            .velocity({opacity:1},{duration: 200, delay: 0, queue: false})
-            .velocity({scale: 12}, {duration: 250, delay: 20, queue: false, easing: 'easeInOutQuad'});
+            .velocity({opacity:1},{duration: 75, delay: 0, queue: false})
+            .velocity({scale: scale_factor}, {duration: 300, delay: 0, queue: false, easing: 'easeInOutQuad'});
           }
-        }, 50);
-        
-        
-        
-//        Mouse Out
+        }, 50); // End Interval
+
+      // Mouse Out
       }, function(){
+        // Reset State
         clearInterval(counterInterval);
         counter = 0;
-        
-        
+
+        // Animate back
         newTooltip.velocity({
           opacity: 0, marginTop: '-10px'}, { duration: 225, queue: false, delay: 275 }
         );
-        
-        backdrop.velocity({opacity: 0, scale: 1},
-                          {duration:225,
-                           delay: 275, queue: false,
-                           complete: function(){
-                             backdrop.css('display', 'none');
-                             newTooltip.css('display', 'none');
-                             started = false;
-                           }
-                          }
-        );
-        
-        
-        
+        backdrop.velocity({opacity: 0, scale: 1}, {
+          duration:225,
+          delay: 275, queue: false,
+          complete: function(){
+            backdrop.css('display', 'none');
+            newTooltip.css('display', 'none');
+            started = false;}
+        });
       });
-    }
+    });
+  }
 }( jQuery ));;
 /*!
  * Waves v0.5.3
@@ -1100,13 +1109,10 @@ jQuery.extend( jQuery.easing,
 
 
     
-    function createToast(message) {
-        var toast = $('<div></div>');
-        toast.addClass('toast');
-        toast.addClass(className);
-        var text = $('<span></span>');
-        text.text(message);
-        toast.append(text);
+    function createToast(html) {
+        var toast = $("<div class='toast'></div>")
+          .addClass(className)
+          .html(html);
         // Bind hammer
         toast.hammer({prevent_default:false
               }).bind('pan', function(e) {
@@ -1607,88 +1613,65 @@ jQuery.extend( jQuery.easing,
 	};
 
 })(jQuery);;(function ($) {
-
-  // Text based inputs
-  var text_inputs = $('input[type=text], input[type=password], input[type=email], textarea');  
-  
-  text_inputs.each(function(){
-    if($(this).val().length !== 0) {
-     $(this).siblings('label').addClass('active');
-    }
-  })
-
-  text_inputs.focus(function () {
-    $(this).siblings('label').addClass('active');
-  });
-
-  text_inputs.blur(function () {
-    if ($(this).val().length === 0) {
-      $(this).siblings('label').removeClass('active');      
-    }
-  });
+  $(document).ready(function() {
 
 
-  // Textarea Auto Resize
-  $('textarea').each(function () {
-    var hiddenDiv = $('<div class="hiddendiv common"></div>'),
-        content = null;
+    // Text based inputs
+    var text_inputs = $('input[type=text], input[type=password], input[type=email], textarea');  
+    
+    text_inputs.each(function(){
+      if($(this).val().length !== 0) {
+       $(this).siblings('label').addClass('active');
+      }
+    })
 
-    $('body').append(hiddenDiv);
-
-    $(this).on('keyup keydown', function () {
-
-        content = $(this).val();
-
-        content = content.replace(/\n/g, '<br>');
-        hiddenDiv.html(content + '<br>');
-
-        $(this).css('height', hiddenDiv.height());
-
+    text_inputs.focus(function () {
+      $(this).siblings('label').addClass('active');
     });
-  });
+
+    text_inputs.blur(function () {
+      if ($(this).val().length === 0) {
+        $(this).siblings('label').removeClass('active');      
+      }
+    });
 
 
-  // Range Input
-  var range_input = $('input[type=range]');
-  var range_mousedown = false;
+    // Textarea Auto Resize
+    $('textarea').each(function () {
+      var hiddenDiv = $('<div class="hiddendiv common"></div>'),
+          content = null;
 
-  range_input.each(function () {
-    var thumb = $('<span class="thumb"><span class="value"></span></span>');
-    $(this).after(thumb);
-  });
+      $('body').append(hiddenDiv);
 
-  var range_wrapper = $('.range-field');
+      $(this).on('keyup keydown', function () {
 
-  range_wrapper.on("mousedown", function(e) {
-    range_mousedown = true;
-    $(this).addClass('active');
+          content = $(this).val();
 
-    var thumb = $(this).children('.thumb');
-    if (!thumb.hasClass('active')) {
-      thumb.velocity({ height: "30px", width: "30px", top: "-20px", marginLeft: "-15px"}, { duration: 300, easing: 'easeOutExpo' });  
-    }
-    var left = e.pageX - $(this).offset().left;
-    var width = $(this).outerWidth();
+          content = content.replace(/\n/g, '<br>');
+          hiddenDiv.html(content + '<br>');
 
-    if (left < 0) {
-      left = 0;
-    }
-    else if (left > width) {
-      left = width;
-    }
-    thumb.addClass('active').css('left', left);
-    thumb.find('.value').html($(this).children('input[type=range]').val());   
- 
-  });
-  range_wrapper.on("mouseup", function() {
-    range_mousedown = false;
-    $(this).removeClass('active');
-  });
+          $(this).css('height', hiddenDiv.height());
 
-  range_wrapper.on("mousemove", function(e) {
+      });
+    });
 
-    var thumb = $(this).children('.thumb');
-    if (range_mousedown) {
+
+    // Range Input
+    var range_input = $('input[type=range]');
+    var range_mousedown = false;
+
+    range_input.each(function () {
+      var thumb = $('<span class="thumb"><span class="value"></span></span>');
+      $(this).after(thumb);
+    });
+
+    var range_wrapper = $('.range-field');
+
+    range_wrapper.on("mousedown", function(e) {
+      range_mousedown = true;
+      $(this).addClass('active');
+
+      var thumb = $(this).children('.thumb');
       if (!thumb.hasClass('active')) {
         thumb.velocity({ height: "30px", width: "30px", top: "-20px", marginLeft: "-15px"}, { duration: 300, easing: 'easeOutExpo' });  
       }
@@ -1703,60 +1686,327 @@ jQuery.extend( jQuery.easing,
       }
       thumb.addClass('active').css('left', left);
       thumb.find('.value').html($(this).children('input[type=range]').val());   
-    }
-    
-  });
-  range_wrapper.on("mouseout", function() {
-    if (!range_mousedown) {
+   
+    });
+    range_wrapper.on("mouseup", function() {
+      range_mousedown = false;
+      $(this).removeClass('active');
+    });
+
+    range_wrapper.on("mousemove", function(e) {
 
       var thumb = $(this).children('.thumb');
+      if (range_mousedown) {
+        if (!thumb.hasClass('active')) {
+          thumb.velocity({ height: "30px", width: "30px", top: "-20px", marginLeft: "-15px"}, { duration: 300, easing: 'easeOutExpo' });  
+        }
+        var left = e.pageX - $(this).offset().left;
+        var width = $(this).outerWidth();
 
-      if (thumb.hasClass('active')) {
-        thumb.velocity({ height: "0", width: "0", top: "10px", marginLeft: "-6px"}, { duration: 100 });
+        if (left < 0) {
+          left = 0;
+        }
+        else if (left > width) {
+          left = width;
+        }
+        thumb.addClass('active').css('left', left);
+        thumb.find('.value').html($(this).children('input[type=range]').val());   
       }
-      thumb.removeClass('active');
-    
-    }
+      
+    });
+    range_wrapper.on("mouseout", function() {
+      if (!range_mousedown) {
+
+        var thumb = $(this).children('.thumb');
+
+        if (thumb.hasClass('active')) {
+          thumb.velocity({ height: "0", width: "0", top: "10px", marginLeft: "-6px"}, { duration: 100 });
+        }
+        thumb.removeClass('active');
+      
+      }
+
+
+    });
+
+
+    //  Select Functionality
+
+    var createSelectStructure = function($select, $index) { 
+      var wrapper = $('<div class="select-wrapper"></div>');
+      var options = $('<ul id="select-options-' + $index +'" class="dropdown-content"></ul>');
+      var selectOptions = $select.children('option');
+      var label = selectOptions.first();
+      selectOptions = selectOptions.slice(1);
+
+      selectOptions.each(function () {
+        options.append($('<li><span>' + $(this).html() + '</span></li>'));
+      });
+      options.find('li').each(function (i) {
+        $(this).click(function () {
+          $select.find('option').eq(i + 1).prop('selected', true);
+          $select.prev('span.select-dropdown').html($(this).text());
+        });
+      });
+
+      $select.wrap(wrapper);
+      $select.before($('<span class="select-dropdown" data-activates="select-options-' + $index +'">' + label.html() + '</span>'));
+      $('body').append(options);
+
+    };
+
+    $('select').not('.disabled').each(function (i) {
+      createSelectStructure($(this), i);    
+    });
+
+
+    $('.select-dropdown').dropdown({"hover": false});
+
 
 
   });
+}( jQuery ));;(function ($) {
+    
+  $.fn.slider = function (options) {
+    var defaults = {
+      indicators: true,
+      height: 400,
+      transition: 500,
+      interval: 6000
+    }
+    options = $.extend(defaults, options);
+
+    return this.each(function() {
+
+      // For each slider, we want to keep track of
+      // which slide is active and its associated content
+      var $this = $(this);
+      var $slider = $this.find('ul.slides').first();
+      var $slides = $slider.find('li');
+      var $active_index = $slider.find('.active').index();
+      var $active;
+      if ($active_index != -1) { $active = $slides.eq($active_index); }
+
+      // Transitions the caption depending on alignment
+      function captionTransition(caption, duration) {
+        if (caption.hasClass("center-align")) {
+          caption.velocity({opacity: 0, translateY: -100}, {duration: duration, queue: false});
+        }
+        else if (caption.hasClass("right-align")) {
+          caption.velocity({opacity: 0, translateX: 100}, {duration: duration, queue: false});
+        }
+        else if (caption.hasClass("left-align")) {
+          caption.velocity({opacity: 0, translateX: -100}, {duration: duration, queue: false});
+        }
+      }
+
+      // This function will transition the slide to any index of the next slide
+      function moveToSlide(index) {
+        if (index >= $slides.length) index = 0;
+        else if (index < 0) index = $slides.length -1;
+
+        $active_index = $slider.find('.active').index();
+
+        // Only do if index changes
+        if ($active_index != index) {
+          $active = $slides.eq($active_index);
+          $caption = $active.find('.caption');
+
+          $active.removeClass('active');
+          $active.velocity({opacity: 0}, {duration: options.transition, queue: false, easing: 'easeOutQuad'});
+          captionTransition($caption, options.transition);
 
 
-  //  Select Functionality
+          // Update indicators
+          if (options.indicators) {
+            $indicators.eq($active_index).removeClass('active');
+          }
+          
+          $slides.eq(index).velocity({opacity: 1}, {duration: options.transition, queue: false, easing: 'easeOutQuad'});
+          $slides.eq(index).find('.caption').velocity({opacity: 1, translateX: 0, translateY: 0}, {duration: options.transition, delay: options.transition, queue: false, easing: 'easeOutQuad'});
+          $slides.eq(index).addClass('active');
 
-  var createSelectStructure = function($select, $index) { 
-    var wrapper = $('<div class="select-wrapper"></div>');
-    var options = $('<ul id="select-options-' + $index +'" class="dropdown-content"></ul>');
-    var selectOptions = $select.children('option');
-    var label = selectOptions.first();
-    selectOptions = selectOptions.slice(1);
 
-    selectOptions.each(function () {
-      options.append($('<li><span>' + $(this).html() + '</span></li>'));
-    });
-    options.find('li').each(function (i) {
-      $(this).click(function () {
-        $select.find('option').eq(i + 1).prop('selected', true);
-        $select.prev('span.select-dropdown').html($(this).text());
+          // Update indicators
+          if (options.indicators) {
+            $indicators.eq(index).addClass('active');
+          }
+        }
+      }
+
+      // Set height of slider
+      $this.height(options.height + 40);
+      $slider.height(options.height);
+
+      // Set initial positions of captions
+      $slides.find('.caption').each(function () {
+        captionTransition($(this), 0);
       });
-    });
 
-    $select.wrap(wrapper);
-    $select.before($('<span class="select-dropdown" data-activates="select-options-' + $index +'">' + label.html() + '</span>'));
-    $('body').append(options);
+      // dynamically add indicators
+      if (options.indicators) {
+        var $indicators = $('<ul class="indicators"></ul>');
+        $slides.each(function( index ) {
+          var $indicator = $('<li class="indicator-item"></li>');
+
+          // Handle clicks on indicators
+          $indicator.click(function () {
+            var $parent = $slider.parent();
+            var curr_index = $parent.find($(this)).index();
+            moveToSlide(curr_index);
+
+            // reset interval
+            clearInterval($interval);
+            $interval = setInterval(
+              function(){
+                $active_index = $slider.find('.active').index();
+                if ($slides.length == $active_index + 1) $active_index = 0; // loop to start
+                else $active_index += 1;
+                
+                moveToSlide($active_index);
+
+              }, options.transition + options.interval 
+            );
+          });
+          $indicators.append($indicator);
+        });
+        $this.append($indicators);
+        $indicators = $this.find('ul.indicators').find('li.indicator-item');
+      }
+
+      if ($active) {
+        $active.show();
+      }
+      else {
+        console.log("false");
+        $slides.first().addClass('active').velocity({opacity: 1}, {duration: options.transition, queue: false, easing: 'easeOutQuad'});
+
+        $active_index = 0;
+        $active = $slides.eq($active_index);
+
+        // Update indicators
+        if (options.indicators) {
+          $indicators.eq($active_index).addClass('active');
+        }
+      }
+
+      // Adjust height to current slide
+      $active.find('img').load(function() {
+        // Handler for .load() called.
+        $active.find('.caption').velocity({opacity: 1, translateX: 0, translateY: 0}, {duration: options.transition, queue: false, easing: 'easeOutQuad'});
+      });
+
+      // auto scroll 
+      $interval = setInterval(
+        function(){
+          $active_index = $slider.find('.active').index();          
+          moveToSlide($active_index + 1);
+
+        }, options.transition + options.interval 
+      );
+
+
+      // HammerJS, Swipe navigation
+
+      // Touch Event
+      var panning = false;
+      var swipeLeft = false;
+      var swipeRight = false;
+
+      $this.hammer({
+          prevent_default: false
+      }).bind('pan', function(e) {
+        if (e.gesture.pointerType === "touch") {
+
+          // reset interval
+          clearInterval($interval);
+
+          var direction = e.gesture.direction;
+          var x = e.gesture.deltaX;
+          var velocityX = e.gesture.velocityX;
+
+          $curr_slide = $slider.find('.active');
+          $curr_slide.velocity({ translateX: x
+              }, {duration: 50, queue: false, easing: 'easeOutQuad'});      
+
+          // Swipe Left
+          if (direction === 4 && (x > ($this.innerWidth() / 2) || velocityX < -0.65)) {
+            swipeRight = true;
+          }
+          // Swipe Right
+          else if (direction === 2 && (x < (-1 * $this.innerWidth() / 2) || velocityX > 0.65)) {
+            swipeLeft = true;
+          }
+
+          
+        }
+      
+      }).bind('panend', function(e) {
+        if (e.gesture.pointerType === "touch") {
+
+          $curr_slide = $slider.find('.active');
+          panning = false;
+          curr_index = $slider.find('.active').index();
+
+          if (!swipeRight && !swipeLeft) {
+            // Return to original spot
+            $curr_slide.velocity({ translateX: 0
+                }, {duration: 300, queue: false, easing: 'easeOutQuad'});
+          }
+          else if (swipeLeft) {
+            moveToSlide(curr_index + 1);
+            $curr_slide.velocity({translateX: -1 * $this.innerWidth() }, {duration: 300, queue: false, easing: 'easeOutQuad', 
+                                  complete: function() {
+                                    $curr_slide.velocity({opacity: 0, translateX: 0}, {duration: 0, queue: false});
+                                  } });
+          }
+          else if (swipeRight) {
+            moveToSlide(curr_index - 1);
+            $curr_slide.velocity({translateX: $this.innerWidth() }, {duration: 300, queue: false, easing: 'easeOutQuad', 
+                                  complete: function() {
+                                    $curr_slide.velocity({opacity: 0, translateX: 0}, {duration: 0, queue: false});
+                                  } });
+          }
+          swipeLeft = false;
+          swipeRight = false;
+
+          // Restart interval
+          clearInterval($interval);
+          $interval = setInterval(
+            function(){
+              $active_index = $slider.find('.active').index();
+              if ($slides.length == $active_index + 1) $active_index = 0; // loop to start
+              else $active_index += 1;
+              
+              moveToSlide($active_index);
+
+            }, options.transition + options.interval 
+          );
+        }
+      });
+
+
+    });
 
   };
+}( jQuery ));;(function ($) {
+  $(document).ready(function() {
 
-  $('select').not('.disabled').each(function (i) {
-    createSelectStructure($(this), i);    
+    $(document).on('click.card', '.card', function (e) {
+      if ($(this).find('.card-reveal').length) {
+        console.log("card reveal");
+        if ($(e.target).is($('.card-reveal span.card-title')) || $(e.target).is($('.card-reveal span.card-title i'))) {
+          $(this).find('.card-reveal').velocity({top: '100%'}, {duration: 300, queue: false, easing: 'easeOutQuad'});        
+        }
+        else {
+          $(this).find('.card-reveal').velocity({top: 0}, {duration: 300, queue: false, easing: 'easeOutQuad'});        
+        }
+      }
+
+
+    });  
+
   });
-
-
-  $('.select-dropdown').dropdown({"hover": false});
-
-
-
-
 }( jQuery ));;/*!
  * pickadate.js v3.5.4, 2014/09/11
  * By Amsul, http://amsul.ca

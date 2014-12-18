@@ -2538,16 +2538,6 @@ th {
   color: #FFFFFF !important;
 }
 
-body {
-  display: flex;
-  min-height: 100vh;
-  flex-direction: column;
-}
-
-main {
-  flex: 1;
-}
-
 ul {
   list-style-type: none;
 }
@@ -2728,15 +2718,12 @@ i.right {
   }
 }
 
-footer {
-  margin-top: 20px;
-  padding-top: 20px;
-  background-color: #ee6e73;
+#footer {
+  text-align: center;
 }
-footer .footer-copyright {
-  line-height: 50px;
-  color: rgba(255, 255, 255, 0.8);
-  background-color: rgba(51, 51, 51, 0.08);
+#footer a {
+  vertical-align: top;
+  line-height: 30px;
 }
 
 table, th, td {
@@ -2791,7 +2778,6 @@ td, th {
   border-radius: 2px;
 }
 .collection .collection-item {
-  line-height: 1.5rem;
   padding: 10px 20px;
   margin: 0px;
   border-bottom: 1px solid #e0e0e0;
@@ -2844,32 +2830,6 @@ td, th {
 }
 .collection.pagination li:hover {
   background-color: #e1f5fe;
-}
-
-span.badge {
-  min-width: 3rem;
-  padding: 0 6px;
-  text-align: center;
-  font-size: 1rem;
-  line-height: inherit;
-  color: #757575;
-  float: right;
-  -webkit-box-sizing: border-box;
-  -moz-box-sizing: border-box;
-  box-sizing: border-box;
-}
-span.badge.new {
-  font-weight: 300;
-  font-size: 0.8rem;
-  color: #fff;
-  background-color: #2196F3;
-  -webkit-border-radius: 2px;
-  -moz-border-radius: 2px;
-  border-radius: 2px;
-  background-clip: padding-box;
-}
-span.badge.new:after {
-  content: " new";
 }
 
 @font-face {
@@ -5856,7 +5816,7 @@ span.badge.new:after {
 }
 
 .container {
-  padding: 0 1.5rem;
+  padding: 0 1rem;
   margin: 0 auto;
   max-width: 1280px;
   width: 90%;
@@ -5873,8 +5833,8 @@ span.badge.new:after {
   }
 }
 .container .row {
-  margin-left: -0.75rem;
-  margin-right: -0.75rem;
+  margin-left: -0.5rem;
+  margin-right: -0.5rem;
 }
 
 .section {
@@ -5911,7 +5871,7 @@ span.badge.new:after {
   -webkit-box-sizing: border-box;
   -moz-box-sizing: border-box;
   box-sizing: border-box;
-  padding: 0 0.75rem;
+  padding: 0 0.5rem;
 }
 .row .col.s1 {
   width: 8.33333%;
@@ -6356,7 +6316,7 @@ small {
   font-size: 75%;
 }
 
-.light, footer .footer-copyright {
+.light {
   font-weight: 300;
 }
 
@@ -6930,12 +6890,6 @@ ul.tabs li.tab {
   font-size: 1.6rem;
 }
 
-li.divider {
-  height: 1px;
-  overflow: hidden;
-  background-color: #eeeeee;
-}
-
 .dropdown-content {
   display: none;
   position: absolute;
@@ -6948,10 +6902,6 @@ li.divider {
   cursor: pointer;
   font-size: 1.2rem;
   color: #212121;
-  line-height: 1.5rem;
-}
-.dropdown-content li > a, .dropdown-content li > span {
-  display: block;
   padding: 1rem 1rem;
 }
 @media only screen and (min-width: 1200px) {
@@ -7785,7 +7735,7 @@ ul.table-of-contents a.active {
     top: 0;
     height: 120%;
     background-color: #FFF;
-    z-index: 999;
+    z-index: 1000;
     -webkit-box-shadow: 0 5px 11px 0 rgba(0, 0, 0, 0.18), 0 4px 15px 0 rgba(0, 0, 0, 0.15);
     -moz-box-shadow: 0 5px 11px 0 rgba(0, 0, 0, 0.18), 0 4px 15px 0 rgba(0, 0, 0, 0.15);
     box-shadow: 0 5px 11px 0 rgba(0, 0, 0, 0.18), 0 4px 15px 0 rgba(0, 0, 0, 0.15);
@@ -7823,7 +7773,7 @@ ul.table-of-contents a.active {
   right: 0px;
   bottom: 0px;
   background-color: rgba(0, 0, 0, 0.5);
-  z-index: 998;
+  z-index: 999;
   will-change: opacity;
 }
 
