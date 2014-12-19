@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		
+	</head>
+	<body>
+		<rant>Yall are silly silly people nerds</rant>
+		<script>
+			var rants = document.getElementsByTagName('rant');
+			for (i=0;i<rants.length;i++) {
+			  var rant = new SpeechSynthesisUtterance(rants[i].innerHTML);
+			  window.speechSynthesis.speak(rant);
+			}
+		</script>
+	</body>
+</html>
